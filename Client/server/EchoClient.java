@@ -33,6 +33,7 @@ public class EchoClient {
 
             try(scanner; writer; inputStreamReader){
                 while(true){
+                    System.out.print("Введите сообщение: ");
                     String message = scanner.nextLine();
                     writer.println(message);
                     writer.flush();

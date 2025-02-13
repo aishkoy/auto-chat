@@ -3,6 +3,9 @@ package server;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
@@ -17,12 +20,12 @@ public class EchoServer {
         return new EchoServer(port);
     }
 
-    public void run(){
-        try(ServerSocket serverSocket = new ServerSocket(port)){
-            try(Socket socket = serverSocket.accept()){
+    public void run() {
+        try (ServerSocket serverSocket = new ServerSocket(port)) {
+            try (Socket socket = serverSocket.accept()) {
                 handle(socket);
             }
-        } catch (IOException e){
+        } catch (IOException e) {
             System.out.println("Вероятно этот порт уже занят");
             e.printStackTrace();
         }
@@ -32,24 +35,33 @@ public class EchoServer {
         InputStream inputStream = socket.getInputStream();
         InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
 
-        try(Scanner scanner = new Scanner(inputStreamReader)){
+        try (Scanner scanner = new Scanner(inputStreamReader)) {
             OutputStream outputStream = socket.getOutputStream();
             PrintWriter writer = new PrintWriter(outputStream);
 
-            while(true){
+            while (true) {
                 String message = scanner.nextLine().trim();
                 System.out.println("От клиента: " + message);
-                if(message.equalsIgnoreCase("bye")){
-                    writer.println("bye bye!");
-                    writer.flush();
+                String response = processMessage(message);
+                writer.println(response);
+                writer.flush();
+
+                if (message.equalsIgnoreCase("bye")) {
                     return;
                 }
-
-                writer.println(new StringBuilder(message).reverse());
-                writer.flush();
             }
-        }catch(NoSuchElementException e){
+        } catch (NoSuchElementException e) {
             System.out.println("Клиент прервал соединение...");
         }
     }
+
+    private String processMessage(String message) {
+        return message.equalsIgnoreCase("bye") ? "bye bye!" :
+                message.equalsIgnoreCase("date") ? LocalDate.now().format(DateTimeFormatter.ISO_DATE) :
+                        message.equalsIgnoreCase("time") ? LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss")) :
+                                message.toLowerCase().startsWith("reverse ") ? new StringBuilder(message.substring(8)).reverse().toString() :
+                                        message.toLowerCase().startsWith("upper ") ? message.substring(6).toUpperCase() :
+                                                message;
+    }
+
 }
