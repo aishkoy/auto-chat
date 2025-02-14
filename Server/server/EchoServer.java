@@ -1,19 +1,20 @@
 package server;
 
+import ProcessMessage.MessageProcessor;
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 public class EchoServer {
     private final int port;
+    private final MessageProcessor messageProcessor;
 
     private EchoServer(int port) {
         this.port = port;
+        this.messageProcessor = new MessageProcessor();
     }
 
     public static EchoServer bindToPort(int port) {
@@ -56,12 +57,6 @@ public class EchoServer {
     }
 
     private String processMessage(String message) {
-        return message.equalsIgnoreCase("bye") ? "bye bye!" :
-                message.equalsIgnoreCase("date") ? LocalDate.now().format(DateTimeFormatter.ISO_DATE) :
-                        message.equalsIgnoreCase("time") ? LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss")) :
-                                message.toLowerCase().startsWith("reverse ") ? new StringBuilder(message.substring(8)).reverse().toString() :
-                                        message.toLowerCase().startsWith("upper ") ? message.substring(6).toUpperCase() :
-                                                message;
+        return messageProcessor.processMessage(message);
     }
-
 }
